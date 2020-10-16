@@ -1,18 +1,96 @@
+import 'dart:async';
+import 'package:audio_video_player/audioplayer.dart';
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(VideoPlayerApp());
 
-class MyApp extends StatelessWidget {
+class VideoPlayerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Hello There :)',
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Hello There :)'),
-        ),
-        body: Center(
-          child: Text('New Screen ;)'),
+      title: 'IIEC RISE',
+      home: VideoPlayerScreen(),
+    );
+  }
+}
+
+class VideoPlayerScreen extends StatefulWidget {
+  VideoPlayerScreen({Key key}) : super(key: key);
+
+  @override
+  _VideoPlayerScreenState createState() => _VideoPlayerScreenState();
+}
+
+class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
+  VideoPlayerController _controller;
+  Future<void> _initializeVideoPlayerFuture;
+
+  @override
+  void initState() {
+    _controller = VideoPlayerController.network(
+      'https://github.com/dineshcode97/Flutter-Data/raw/master/riseintro.MP4',
+    );
+
+    _initializeVideoPlayerFuture = _controller.initialize();
+
+    _controller.setLooping(true);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Python IIEC RISE'),
+        backgroundColor: Colors.red,
+      ),
+      body: Column(
+        children: <Widget>[
+          FutureBuilder(
+            future: _initializeVideoPlayerFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                return AspectRatio(
+                  aspectRatio: _controller.value.aspectRatio,
+                  child: VideoPlayer(_controller),
+                );
+              } else {
+                return Center(child: CircularProgressIndicator());
+              }
+            },
+          ),
+          FloatingActionButton(
+            backgroundColor: Colors.red,
+            onPressed: () {
+              setState(() {
+                if (_controller.value.isPlaying) {
+                  _controller.pause();
+                } else {
+                  _controller.play();
+                }
+              });
+            },
+            child: Icon(
+              _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: "gotoaudio",
+        backgroundColor: Colors.red,
+        onPressed: () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => MyAudioPlayer ()));
+        },
+        child: Icon(Icons.music_note,
         ),
       ),
     );
